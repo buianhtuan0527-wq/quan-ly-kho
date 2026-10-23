@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập - Quản lý kho</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="hop-dn">
+    <h2 id="tieu-de">📦 Đăng nhập</h2>
+    <form id="form-dn">
+      <input id="hoten" placeholder="Họ tên" style="display:none">
+      <input id="tendn" placeholder="Tên đăng nhập" required>
+      <input id="matkhau" type="password" placeholder="Mật khẩu" required>
+      <button type="submit" id="btn-gui">Đăng nhập</button>
+    </form>
+    <p class="loi" id="loi"></p>
+    <p class="chuyen">
+      <span id="cau-hoi">Chưa có tài khoản?</span>
+      <a id="chuyen-che-do">Đăng ký</a>
+    </p>
+  </div>
+
+  <script>
+    let cheDoDangKy = false;
+    const $ = id => document.getElementById(id);
+
+    $('chuyen-che-do').addEventListener('click', () => {
+      cheDoDangKy = !cheDoDangKy;
+      $('tieu-de').textContent = cheDoDangKy ? '📦 Đăng ký' : '📦 Đăng nhập';
+      $('btn-gui').textContent = cheDoDangKy ? 'Đăng ký' : 'Đăng nhập';
+      $('hoten').style.display = cheDoDangKy ? 'block' : 'none';
+      $('cau-hoi').textContent = cheDoDangKy ? 'Đã có tài khoản?' : 'Chưa có tài khoản?';
+      $('chuyen-che-do').textContent = cheDoDangKy ? 'Đăng nhập' : 'Đăng ký';
+      $('loi').textContent = '';
+    });
+
+    async function gui(url, data) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const kq = await res.json();
+      if (!res.ok) throw new Error(kq.loi || 'Co loi xay ra');
+      return kq;
+    }
+
+    $('form-dn').addEventListener('submit', async e => {
+      e.preventDefault();
+      $('loi').textContent = '';
+      const data = { tenDangNhap: $('tendn').value, matKhau: $('matkhau').value, hoTen: $('hoten').value };
+      try {
+        if (cheDoDangKy) {
+          await gui('/api/dangky', data);
+        }
+        await gui('/api/dangnhap', data);   // đăng ký xong tự đăng nhập luôn
+        location.href = '/';
+      } catch (err) { $('loi').textContent = err.message; }
+    });
+  </script>
+</body>
+</html>
